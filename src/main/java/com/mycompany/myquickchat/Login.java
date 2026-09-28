@@ -8,7 +8,7 @@ package com.mycompany.myquickchat;
  * This class checks the username, password, and cell phone number.
  * It also logs the user in.
  *
- * @author AxoleYokwana
+ * @author AxoleYokwana  
  */
 public class Login {
  

@@ -58,6 +58,6 @@ public class MyQuickChat {
         // show if the login worked
         System.out.println(login.returnLoginStatus(loginUsername, loginPassword));
 
-        input.close();
+        input.close(); 
     }
 }
