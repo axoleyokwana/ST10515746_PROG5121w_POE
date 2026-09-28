@@ -11,7 +11,7 @@ package com.mycompany.myquickchat;
  * @author AxoleYokwana
  */
 public class Login {
-
+ 
     // saved account details
     private String firstName;
     private String lastName;
