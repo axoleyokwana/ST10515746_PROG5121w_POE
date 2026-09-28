@@ -24,7 +24,7 @@ public class MyQuickChat {
         String firstName = input.nextLine();
         login.setFirstName(firstName);
 
-        // user enters last name
+        // user enters last name 
         System.out.print("Enter last name: ");
         String lastName = input.nextLine();
         login.setLastName(lastName);
