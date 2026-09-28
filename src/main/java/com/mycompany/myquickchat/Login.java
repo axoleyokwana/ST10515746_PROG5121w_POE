@@ -43,7 +43,7 @@ public class Login {
     public boolean checkPasswordComplexity(String password) {
         boolean hasCapitalLetter = false;
         boolean hasNumber = false;
-        boolean hasSpecialCharacter = false;
+        boolean hasSpecialCharacter = false; 
 
         // password must be at least 8 characters long
         if (password.length() < 8) {
