@@ -598,6 +598,29 @@ public class Message {
         return value.toString();
     }
 
+    private static int findJsonObjectEnd(String content, int objectStart) {
+        boolean inString = false;
+        boolean escaped = false;
+
+        for (int i = objectStart; i < content.length(); i++) {
+            char character = content.charAt(i);
+            if (inString) {
+                if (escaped) {
+                    escaped = false;
+                } else if (character == '\\') {
+                    escaped = true;
+                } else if (character == '"') {
+                    inString = false;
+                }
+            } else if (character == '"') {
+                inString = true;
+            } else if (character == '}') {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     // read the JSON file and copy each stored message into the stored arrays
     //
     // Reference for reading a file in Java:
@@ -636,8 +659,11 @@ public class Message {
                 }
 
                 int blockStart = content.lastIndexOf("{", idPos);
-                int blockEnd = content.indexOf("}", idPos);
-                if (blockStart == -1 || blockEnd == -1) {
+                if (blockStart == -1) {
+                    break;
+                }
+                int blockEnd = findJsonObjectEnd(content, blockStart);
+                if (blockEnd == -1) {
                     break;
                 }
 

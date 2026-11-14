@@ -218,6 +218,22 @@ public class MessageTest {
 
     }
 
+    @Test
+    public void testStoredMessageWithBracesSurvivesJsonRoundTrip() {
+        String testFile = tempDirectory.resolve("round_trip_messages.json").toString();
+        String text = "Meet me at {the cafe}.";
+        Message msg = new Message("0012345678", 0, "+27718693002", text);
+        msg.setSender("Alex");
+        msg.setStatus("Stored");
+
+        msg.storeMessage(testFile);
+        Message.loadStoredMessagesFromJson(testFile);
+
+        assertEquals(1, Message.getStoredCount());
+        assertEquals(text, Message.getStoredMessages()[0]);
+        assertTrue(msg.displayStoredReport().contains("Message: " + text));
+    }
+
     // Part 3 test data from the assignment
     private static final String MESSAGE_1 = "Did you get the cake?";
     private static final String MESSAGE_2 = "Where are you? You are late! I have asked you to be on time.";
