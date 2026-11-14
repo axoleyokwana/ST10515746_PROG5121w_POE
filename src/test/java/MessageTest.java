@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Unit tests for Part 2 message creation, validation, hashing, and sending.
+ * Unit tests for Part 2 message creation, validation, hashing, and sending,
+ * and for the Part 3 array, search, delete, and report tests.
  *
  * @author AxoleYokwana
  */
@@ -21,6 +22,7 @@ public class MessageTest {
     @BeforeEach
     public void setUp() {
         Message.resetTotalMessages();
+        Message.setJsonFilePath(tempDirectory.resolve("messages.json").toString());
     }
 
     // message length is under 250 characters (success)
@@ -37,6 +39,7 @@ public class MessageTest {
     @Test
     public void testMessageLengthFailure() {
         Message msg = new Message();
+        // create a message with 260 characters (exceeds by 10)
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 260; i++) {
             sb.append("a");
@@ -143,22 +146,21 @@ public class MessageTest {
     public void testMessageSentStore() {
         Message msg = new Message();
         String expected = "Message successfully stored.";
-        String actual = msg.SentMessage(3, tempDirectory.resolve("messages.json").toString());
+        String actual = msg.SentMessage(3);
         assertEquals(expected, actual);
-        assertTrue(java.nio.file.Files.exists(tempDirectory.resolve("messages.json")));
     }
 
     // check total messages sent count
     @Test
     public void testReturnTotalMessagess() {
         Message msg1 = new Message();
-        msg1.SentMessage(1);
+        msg1.SentMessage(1); // send
 
         Message msg2 = new Message();
-        msg2.SentMessage(2);
+        msg2.SentMessage(2); // disregard
 
         Message msg3 = new Message();
-        msg3.SentMessage(1);
+        msg3.SentMessage(1); // send
 
         assertEquals(2, msg1.returnTotalMessagess());
     }
@@ -167,7 +169,7 @@ public class MessageTest {
     @Test
     public void testPrintMessagesOrder() {
         Message msg = new Message("0012345678", 0, "+27718693002", "Hi Mike, can you join us for dinner tonight?");
-        String details = msg.printMessageDetails();
+        String details = msg.printMessages();
 
         assertTrue(details.contains("Message ID: 0012345678"));
         assertTrue(details.contains("Message Hash: 00:0:HITONIGHT"));
@@ -184,30 +186,117 @@ public class MessageTest {
         assertTrue(recipientIndex < messageIndex);
     }
 
-    @Test
-    public void testPrintMessagesReturnsAllSentMessages() {
-        Message first = new Message("0012345678", 0, "+27718693002", "First message");
-        Message second = new Message("0112345678", 1, "+27718693003", "Second message");
-        first.SentMessage(1);
-        second.SentMessage(1);
-
-        String messages = first.printMessages();
-
-        assertTrue(messages.contains("Message ID: 0012345678"));
-        assertTrue(messages.contains("Message ID: 0112345678"));
-        assertTrue(messages.indexOf("First message") < messages.indexOf("Second message"));
-    }
-
     // verify message is successfully stored in a JSON file
     @Test
-    public void testStoreMessageInJsonFile() throws java.io.IOException {
-        java.nio.file.Path testFile = tempDirectory.resolve("direct_store.json");
+    public void testStoreMessageInJsonFile() {
+        String testFile = tempDirectory.resolve("test_messages.json").toString();
+        java.io.File file = new java.io.File(testFile);
 
         Message msg = new Message("0012345678", 0, "+27718693002", "Hi Mike, can you join us for dinner tonight?");
         msg.setStatus("Stored");
-        msg.storeMessage(testFile.toString());
+        msg.storeMessage(testFile);
 
-        assertTrue(java.nio.file.Files.exists(testFile));
-        assertTrue(java.nio.file.Files.size(testFile) > 0);
+        assertTrue(file.exists());
+        assertTrue(file.length() > 0);
+
+    }
+
+    // Part 3 test data from the assignment
+    private static final String MESSAGE_1 = "Did you get the cake?";
+    private static final String MESSAGE_2 = "Where are you? You are late! I have asked you to be on time.";
+    private static final String MESSAGE_3 = "Yohoooo, I am at your gate.";
+    private static final String MESSAGE_4 = "It is dinner time !";
+    private static final String MESSAGE_5 = "Ok, I am leaving without you.";
+
+    // add one test message by sending, storing, or disregarding it
+    private Message addMessage(String messageID, int messageNumber, String recipient, String text, int option) {
+        Message msg = new Message(messageID, messageNumber, recipient, text);
+        msg.setSender("Axole Yokwana");
+        msg.SentMessage(option);
+        return msg;
+    }
+
+    // messages 1 to 4
+    private void addMessagesOneToFour() {
+        addMessage("1111111111", 0, "+27834557896", MESSAGE_1, 1);
+        addMessage("2222222222", 1, "+27838884567", MESSAGE_2, 3);
+        addMessage("3333333333", 2, "+27834484567", MESSAGE_3, 2);
+        // the Developer value for message 4 is the message ID used by the search test
+        addMessage("0838884567", 3, "0838884567", MESSAGE_4, 1);
+    }
+
+    // sent messages array contains the expected test data for messages 1 to 4
+    @Test
+    public void testSentMessagesArrayPopulated() {
+        addMessagesOneToFour();
+
+        Message msg = new Message();
+        String expected = "\"Did you get the cake?\", \"It is dinner time !\"";
+        String actual = msg.displaySentMessages();
+        assertEquals(expected, actual);
+        assertEquals("Did you get the cake?", Message.getSentMessages()[0]);
+        assertEquals("It is dinner time !", Message.getSentMessages()[1]);
+    }
+
+    // longest message from messages 1 to 4
+    @Test
+    public void testDisplayLongestMessage() {
+        addMessagesOneToFour();
+
+        Message msg = new Message();
+        String expected = "Where are you? You are late! I have asked you to be on time.";
+        String actual = msg.displayLongestStoredMessage();
+        assertEquals(expected, actual);
+    }
+
+    // search for message 4 using message ID 0838884567
+    @Test
+    public void testSearchForMessageID() {
+        addMessagesOneToFour();
+
+        Message msg = new Message();
+        String expected = "It is dinner time !";
+        String actual = msg.searchByMessageID("0838884567");
+        assertEquals(expected, actual);
+    }
+
+    // messages sent or stored for recipient +27838884567
+    @Test
+    public void testSearchByRecipient() {
+        addMessagesOneToFour();
+        addMessage("5555555555", 4, "+27838884567", MESSAGE_5, 3);
+
+        Message msg = new Message();
+        String expected = "\"Where are you? You are late! I have asked you to be on time.\" \"Ok, I am leaving without you.\"";
+        String actual = msg.searchByRecipient("+27838884567");
+        assertEquals(expected, actual);
+    }
+
+    // delete test message 2 using its message hash
+    @Test
+    public void testDeleteMessageByHash() {
+        Message message2 = addMessage("2222222222", 1, "+27838884567", MESSAGE_2, 3);
+
+        Message msg = new Message();
+        String expected = "Message: \"Where are you? You are late! I have asked you to be on time.\" successfully deleted.";
+        String actual = msg.deleteMessageByHash(message2.getMessageHash());
+        assertEquals(expected, actual);
+    }
+
+    // report of all sent messages, including the hash, recipient, and message
+    @Test
+    public void testDisplayReport() {
+        addMessagesOneToFour();
+
+        Message msg = new Message();
+        String expected = "Message Hash: 11:0:DIDCAKE\n"
+                + "Recipient: +27834557896\n"
+                + "Message: Did you get the cake?\n"
+                + "\n"
+                + "Message Hash: 08:3:IT\n"
+                + "Recipient: 0838884567\n"
+                + "Message: It is dinner time !";
+        String actual = msg.displayReport();
+        assertEquals(expected, actual);
     }
 }
