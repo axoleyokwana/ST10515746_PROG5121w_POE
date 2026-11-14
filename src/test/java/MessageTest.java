@@ -51,6 +51,23 @@ public class MessageTest {
         assertEquals(expected, actual);
     }
 
+    @Test
+    public void testMessageLengthAtMaximumIsAccepted() {
+        Message msg = new Message();
+        String message = "a".repeat(250);
+
+        assertEquals("Message ready to send.", msg.checkMessageLength(message));
+    }
+
+    @Test
+    public void testMessageOneCharacterOverMaximumIsRejected() {
+        Message msg = new Message();
+        String message = "a".repeat(251);
+
+        assertEquals("Message exceeds 250 characters by 1; please reduce the size.",
+                msg.checkMessageLength(message));
+    }
+
     // recipient number is correctly formatted (+27718693002)
     @Test
     public void testRecipientCellSuccess() {
